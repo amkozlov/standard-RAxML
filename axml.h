@@ -155,10 +155,10 @@
 #define LOG(x)  log(x)
 #define EXP(x)  exp(x)
 
+#define LOG2(x)  log2(x)
+#define EXP2(x)  pow(2, x)
 
-
-
-
+#define LOG2Ex2 2.88539008177792677  // 2 * log2(e)
 
 #define PointGamma(prob,alpha,beta)  PointChi2(prob,2.0*(alpha))/(2.0*(beta))
 
@@ -429,8 +429,8 @@ struct noderec;
 
 typedef struct epBrData
 {
-  int    *countThem;
-  int    *executeThem;
+  unsigned char    *countThem;
+  unsigned char    *executeThem;
   unsigned int *parsimonyScore;
   double *branches;
   double *distalBranches; 
@@ -797,6 +797,7 @@ typedef  struct  {
   char           **outgroups;
   boolean          useEpaHeuristics;
   double           fastEPAthreshold;
+  int              slowEPAbranches;
   boolean          bigCutoff;
   boolean          partitionSmoothed[NUM_BRANCHES];
   boolean          partitionConverged[NUM_BRANCHES];
@@ -907,6 +908,8 @@ typedef  struct  {
 #endif
   
   int *origNumSitePerModel;
+
+  boolean fastEvaluation;
 
 } tree;
 
@@ -1029,6 +1032,7 @@ typedef  struct {
   boolean       leaveDropMode;
   int           slidingWindowSize;
   boolean       checkForUndeterminedSequences;
+  boolean       checkForDuplicateSequences;
   boolean       useQuartetGrouping;
   int           alignmentFileType;
   boolean       calculateIC;
@@ -1369,6 +1373,9 @@ extern double evalCL(tree *tr, double *x2, int *ex2, unsigned char *tip, double 
 
 extern void testInsertThoroughIterative(tree *tr, int branchNumber);
 
+extern int epaInfoCompare(const void *p1, const void *p2);
+
+
 
 /* parallel MRE stuff */
 
@@ -1418,6 +1425,8 @@ extern void testInsertThoroughIterative(tree *tr, int branchNumber);
 #define THREAD_OPT_SCALER                   43
 #define THREAD_COPY_LG4X_RATES              44
 #define THREAD_OPT_LG4X_RATES               45
+#define THREAD_EPA_CONSOLIDATE_HEUR         46
+#define THREAD_EPA_CONSOLIDATE              47
 
 
 /*
@@ -1527,6 +1536,13 @@ void newviewGTRCATPROT_AVX(int tipCase, double *extEV,
 			       double *x1, double *x2, double *x3, double *tipVector,
 			       int *ex3, unsigned char *tipX1, unsigned char *tipX2,
 			   int n, double *left, double *right, int *wgt, int *scalerIncrement, const boolean useFastScaling);
+
+
+
+double evaluateGTRGAMMA_fast_AVX(int *ex1, int *ex2, int *wptr,
+                   double *x1_start, double *x2_start,
+                   double *tipVector,
+                   unsigned char *tipX1, const int n, double *diagptable, const boolean fastScaling);
 
 #endif
 

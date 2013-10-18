@@ -617,57 +617,57 @@ static void testInsertThorough(tree *tr, nodeptr r, nodeptr q)
 	 
 	  tr->bInf[q->bInf->epa->branchNumber].epa->likelihoods[j] = result;	 
 
-	  if(tr->perPartitionEPA)
-	    modifiedBranchLength = getBranchPerPartition(tr, q->z, q->back->z, j) + getBranchPerPartition(tr, x->z, x->back->z, j);
-	  else	      
-	    modifiedBranchLength = getBranch(tr, q->z, q->back->z) + getBranch(tr, x->z, x->back->z);
-
-	  ratio = originalBranchLength / modifiedBranchLength;
-
-	  if(tr->wasRooted && atRoot)
-	    {	     
-	      /* always take distal length from left root node and then fix this later */
-
-	      if(x == tr->leftRootNode)
-		{
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, x->z, x->back->z, j);
-		  else
-		    distalLength = getBranch(tr, x->z, x->back->z);
-		}
-	      else
-		{
-		  assert(x == tr->rightRootNode);
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, q->z, q->back->z, j);
-		  else
-		    distalLength = getBranch(tr, q->z, q->back->z);
-		}
-	    }
-	  else
-	    {
-	      if(root == x)
-		{
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, x->z, x->back->z, j);
-		  else
-		    distalLength = getBranch(tr, x->z, x->back->z);
-		}
-	      else
-		{
-		  assert(root == q); 
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, q->z, q->back->z, j);
-		  else
-		    distalLength = getBranch(tr, q->z, q->back->z);
-		}	      	      
-	    }
-
-	  distalLength *= ratio;
-          
-	  assert(distalLength <= originalBranchLength);
+//	  if(tr->perPartitionEPA)
+//	    modifiedBranchLength = getBranchPerPartition(tr, q->z, q->back->z, j) + getBranchPerPartition(tr, x->z, x->back->z, j);
+//	  else
+//	    modifiedBranchLength = getBranch(tr, q->z, q->back->z) + getBranch(tr, x->z, x->back->z);
+//
+//	  ratio = originalBranchLength / modifiedBranchLength;
+//
+//	  if(tr->wasRooted && atRoot)
+//	    {
+//	      /* always take distal length from left root node and then fix this later */
+//
+//	      if(x == tr->leftRootNode)
+//		{
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, x->z, x->back->z, j);
+//		  else
+//		    distalLength = getBranch(tr, x->z, x->back->z);
+//		}
+//	      else
+//		{
+//		  assert(x == tr->rightRootNode);
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, q->z, q->back->z, j);
+//		  else
+//		    distalLength = getBranch(tr, q->z, q->back->z);
+//		}
+//	    }
+//	  else
+//	    {
+//	      if(root == x)
+//		{
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, x->z, x->back->z, j);
+//		  else
+//		    distalLength = getBranch(tr, x->z, x->back->z);
+//		}
+//	      else
+//		{
+//		  assert(root == q);
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, q->z, q->back->z, j);
+//		  else
+//		    distalLength = getBranch(tr, q->z, q->back->z);
+//		}
+//	    }
+//
+//	  distalLength *= ratio;
+//
+//	  assert(distalLength <= originalBranchLength);
 	     
-	  tr->bInf[q->bInf->epa->branchNumber].epa->distalBranches[j] = distalLength;	  
+//	  tr->bInf[q->bInf->epa->branchNumber].epa->distalBranches[j] = distalLength;
 	}
     }
 
@@ -810,16 +810,37 @@ static void allocBranchX(tree *tr)
     i = 0;
 
   for(i = 0; i < tr->numberOfBranches; i++)
-    {
+  {
       branchInfo 
-	*b = &(tr->bInf[i]);
+         *b = &(tr->bInf[i]);
 
-      b->epa->left  = (double*)rax_malloc(sizeof(double) * tr->contiguousVectorLength);
-      b->epa->leftScaling = (int*)rax_malloc(sizeof(int) * tr->contiguousScalingLength);
+//      if (!isTip(b->epa->leftNodeNumber, tr->mxtips))
+//      {
+          b->epa->left  = (double*)rax_malloc(sizeof(double) * tr->contiguousVectorLength);
+          b->epa->leftScaling = (int*)rax_malloc(sizeof(int) * tr->contiguousScalingLength);
+//          memset(b->epa->left, 0, sizeof(double) * tr->contiguousVectorLength);
+//          memset(b->epa->leftScaling, 0, sizeof(int) * tr->contiguousScalingLength);
+//      }
+//      else
+//      {
+//          b->epa->left  = (double*)NULL;
+ //         b->epa->leftScaling = (int*)NULL;
+//      }
 
-      b->epa->right = (double*)rax_malloc(sizeof(double)  * tr->contiguousVectorLength);
-      b->epa->rightScaling = (int*)rax_malloc(sizeof(int) * tr->contiguousScalingLength);     
-    }
+//      if (!isTip(b->epa->rightNodeNumber, tr->mxtips))
+//      {
+          b->epa->right = (double*)rax_malloc(sizeof(double)  * tr->contiguousVectorLength);
+          b->epa->rightScaling = (int*)rax_malloc(sizeof(int) * tr->contiguousScalingLength);
+//          memset(b->epa->right, 0, sizeof(double) * tr->contiguousVectorLength);
+//          memset(b->epa->rightScaling, 0, sizeof(int) * tr->contiguousScalingLength);
+//      }
+//      else
+//      {
+//          b->epa->right  = (double*)NULL;
+//          b->epa->rightScaling = (int*)NULL;
+//      }
+
+  }
 }
 
 static void updateClassify(tree *tr, double *z, boolean *partitionSmoothed, boolean *partitionConverged, double *x1, double *x2, unsigned char *tipX1, unsigned char *tipX2, int tipCase, int insertions)
@@ -1239,57 +1260,57 @@ void testInsertThoroughIterative(tree *tr, int branchNumber)
 	  else
 	    b->epa->branches[insertions] = getBranch(tr, e3, e3);	  
 
-	  if(tr->perPartitionEPA)
-	    modifiedBranchLength = getBranchPerPartition(tr, e1, e1, insertions) + getBranchPerPartition(tr, e2, e2, insertions);
-	  else
-	    modifiedBranchLength = getBranch(tr, e1, e1) + getBranch(tr, e2, e2);
-
-	  ratio = b->epa->originalBranchLength / modifiedBranchLength;
-
-	  if(tr->wasRooted && atRoot)
-	    {	     
-	      /* always take distal length from left root node and then fix this later */
-
-	      if(x == tr->leftRootNode)
-		{
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, e1, e1, insertions);
-		  else
-		    distalLength = getBranch(tr, e1, e1);
-		}
-	      else
-		{
-		  assert(x == tr->rightRootNode);
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, e2, e2, insertions);
-		  else
-		    distalLength = getBranch(tr, e2, e2);
-		}
-	    }
-	  else
-	    {
-	      if(root == x)
-		{
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, e1, e1, insertions);
-		  else
-		    distalLength = getBranch(tr, e1, e1);
-		}
-	      else
-		{
-		  assert(root == q);
-		  if(tr->perPartitionEPA)
-		    distalLength = getBranchPerPartition(tr, e2, e2, insertions);
-		  else
-		    distalLength = getBranch(tr, e2, e2);
-		}	      	      
-	    }
-
-	  distalLength *= ratio;
-          
-	  assert(distalLength <= b->epa->originalBranchLength);
-	     
-	  b->epa->distalBranches[insertions] = distalLength;	  	
+//	  if(tr->perPartitionEPA)
+//	    modifiedBranchLength = getBranchPerPartition(tr, e1, e1, insertions) + getBranchPerPartition(tr, e2, e2, insertions);
+//	  else
+//	    modifiedBranchLength = getBranch(tr, e1, e1) + getBranch(tr, e2, e2);
+//
+//	  ratio = b->epa->originalBranchLength / modifiedBranchLength;
+//
+//	  if(tr->wasRooted && atRoot)
+//	    {
+//	      /* always take distal length from left root node and then fix this later */
+//
+//	      if(x == tr->leftRootNode)
+//		{
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, e1, e1, insertions);
+//		  else
+//		    distalLength = getBranch(tr, e1, e1);
+//		}
+//	      else
+//		{
+//		  assert(x == tr->rightRootNode);
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, e2, e2, insertions);
+//		  else
+//		    distalLength = getBranch(tr, e2, e2);
+//		}
+//	    }
+//	  else
+//	    {
+//	      if(root == x)
+//		{
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, e1, e1, insertions);
+//		  else
+//		    distalLength = getBranch(tr, e1, e1);
+//		}
+//	      else
+//		{
+//		  assert(root == q);
+//		  if(tr->perPartitionEPA)
+//		    distalLength = getBranchPerPartition(tr, e2, e2, insertions);
+//		  else
+//		    distalLength = getBranch(tr, e2, e2);
+//		}
+//	    }
+//
+//	  distalLength *= ratio;
+//
+//	  assert(distalLength <= b->epa->originalBranchLength);
+//
+//	  b->epa->distalBranches[insertions] = distalLength;
 	}	  
     }
 }
@@ -1345,7 +1366,24 @@ void addTraverseRobIterative(tree *tr, int branchNumber)
 
 
 
+static void setupBranchNodes(tree *tr, nodeptr p, branchInfo *bInf)
+{
+    bInf[tr->branchCounter].epa->leftNodeNumber = p->number;
+    bInf[tr->branchCounter].epa->rightNodeNumber = p->back->number;
 
+    tr->branchCounter++;
+
+    if(!isTip(p->number, tr->mxtips))
+    {
+        nodeptr q = p->next;
+
+        while(q != p)
+        {
+            setupBranchNodes(tr, q->back, bInf);
+            q = q->next;
+        }
+    }
+}
 
 
 static void setupBranchMetaInfo(tree *tr, nodeptr p, int nTips, branchInfo *bInf)
@@ -1373,7 +1411,7 @@ static void setupBranchMetaInfo(tree *tr, nodeptr p, int nTips, branchInfo *bInf
       
 #ifdef _USE_PTHREADS
       if(!p->back->x)
-	newviewGeneric(tr, p->back);
+          newviewGeneric(tr, p->back);
       masterBarrier(THREAD_GATHER_LIKELIHOOD, tr);
 #endif
 
@@ -1450,11 +1488,6 @@ static void setupJointFormat(tree *tr, nodeptr p, int ntips, branchInfo *bInf, i
       return;
     }
 }
- 
-
-
-
-
 
 static void setupBranchInfo(tree *tr, nodeptr q)
 {
@@ -1466,8 +1499,20 @@ static void setupBranchInfo(tree *tr, nodeptr q)
 
   tr->branchCounter = 0;
 
+//  setupBranchNodes(tr, q, tr->bInf);
+
+//   #ifdef _USE_PTHREADS
+//      allocBranchX(tr);
+//    #endif
+
+//  tr->branchCounter = 0;
+
   setupBranchMetaInfo(tr, q, tr->ntips, tr->bInf);
-    
+
+  printBothOpen("\nThread gather likelihood, elapsed time: %f\n", gettime() - masterTime);
+
+  printBothOpen("\nsetupJointFormat, elapsed time: %f\n", gettime() - masterTime);
+
   assert(tr->branchCounter == tr->numberOfBranches);
 
   if(tr->wasRooted)
@@ -1504,7 +1549,7 @@ static void setupBranchInfo(tree *tr, nodeptr q)
 
 
 
-static int infoCompare(const void *p1, const void *p2)
+int epaInfoCompare(const void *p1, const void *p2)
 {
   info *rc1 = (info *)p1;
   info *rc2 = (info *)p2;
@@ -1519,46 +1564,135 @@ static int infoCompare(const void *p1, const void *p2)
   return (0);
 }
 
-static void consolidateInfoMLHeuristics(tree *tr, int throwAwayStart)
+static int double_comp (const void * a, const void * b)
+{
+  double fa = *(double*) a;
+  double fb = *(double*) b;
+  return (fa > fb) - (fa < fb);
+}
+
+static void heap_select(unsigned long m, unsigned long n, double *arr, double *heap)
+{
+        unsigned long i, j, k;
+        double swap;
+
+        for (i = 0; i < m; i++)
+            heap[i] = arr[i];
+        qsort(heap, m, sizeof(double), double_comp);
+        for (i = m; i < n; i++)
+        {
+                if (arr[i] > heap[0])
+                {
+                        heap[0] = arr[i];
+                        for (j = 0;;)
+                        {
+                                k = ((j+1) << 1) - 1;
+                                if (k >= m) break;
+                                if (k != m-1 && heap[k] > heap[k+1]) k++;
+                                if (heap[j] <= heap[k]) break;
+                                swap = heap[k];
+                                heap[k] = heap[j];
+                                heap[j] = swap;
+                                j = k;
+                        }
+                }
+        }
+}
+
+static void consolidateInfoMLHeuristics2(tree *tr, int throwAwayStart)
 {
   int 
     i, 
     j;
 
-  info 
-    *inf = (info*)rax_malloc(sizeof(info) * tr->numberOfBranches);
+  const int branchesToKeep = throwAwayStart + 1;
+  printBothOpen("\nbrnachesToKeep = %d\n", branchesToKeep);
+
+
+  double
+    *branchLH = (double*)rax_malloc(sizeof(double) * tr->numberOfBranches),
+    *heap = (double*)rax_malloc(sizeof(double) * branchesToKeep);
 
   assert(tr->useEpaHeuristics);
 
+  double minLH;
   for(j = 0; j < tr->numberOfTipsForInsertion; j++)
-    {     
+  {
       for(i = 0; i < tr->numberOfBranches; i++)
-	{      
-	  inf[i].lh = tr->bInf[i].epa->likelihoods[j];
-	  inf[i].number = i;
-	}
-      
-      qsort(inf, tr->numberOfBranches, sizeof(info), infoCompare);
+          branchLH[i] = tr->bInf[i].epa->likelihoods[j];
 
-      for(i = throwAwayStart; i < tr->numberOfBranches; i++)       
-	tr->bInf[inf[i].number].epa->executeThem[j] = 0;	   	
-    }
-  
-   for(i = 0; i < tr->numberOfBranches; i++)
-     for(j = 0; j < tr->numberOfTipsForInsertion; j++)    
-       tr->bInf[i].epa->likelihoods[j] = unlikely;     
-  
+      heap_select(branchesToKeep, tr->numberOfBranches, branchLH, heap);
+      minLH = heap[0];
 
-  rax_free(inf);
+      for(i = 0; i < tr->numberOfBranches; i++)
+          tr->bInf[i].epa->executeThem[j] = (branchLH[i] >= minLH);
+  }
+
+  printBothOpen("\nminLH = %f\n", minLH);
+
+  for(i = 0; i < tr->numberOfBranches; i++)
+          for(j = 0; j < tr->numberOfTipsForInsertion; j++)
+                  tr->bInf[i].epa->likelihoods[j] = unlikely;
+  
+  rax_free(branchLH);
+  rax_free(heap);
 }
 
-
-
-
-
-static void consolidateInfo(tree *tr)
+static void consolidateInfoMLHeuristicsSeq(tree *tr, int throwAwayStart)
 {
-  int i, j;
+    int
+        i,
+        j;
+
+    info
+    *inf = (info*)rax_malloc(sizeof(info) * tr->numberOfBranches);
+
+
+    for(j = 0; j < tr->numberOfTipsForInsertion; j++)
+    {
+      for(i = 0; i < tr->numberOfBranches; i++)
+    {
+        inf[i].lh = tr->bInf[i].epa->likelihoods[j];
+        inf[i].number = i;
+    }
+
+      qsort(inf, tr->numberOfBranches, sizeof(info), epaInfoCompare);
+
+      for(i = throwAwayStart; i < tr->numberOfBranches; i++)
+          tr->bInf[inf[i].number].epa->executeThem[j] = 0;
+    }
+
+    for(i = 0; i < tr->numberOfBranches; i++)
+     for(j = 0; j < tr->numberOfTipsForInsertion; j++)
+       tr->bInf[i].epa->likelihoods[j] = unlikely;
+
+    rax_free(inf);
+}
+
+static void consolidateInfoMLHeuristics(tree *tr, int throwAwayStart)
+{
+  assert(tr->useEpaHeuristics);
+
+#ifdef _USE_PTHREADS
+      masterBarrier(THREAD_EPA_CONSOLIDATE_HEUR, tr);
+#else
+      consolidateInfoMLHeuristicsSeq(tr, throwAwayStart);
+#endif
+
+//   int i, j;
+//   int sum = 0;
+//   for(i = 0; i < tr->numberOfBranches; i++)
+//       for(j = 0; j < tr->numberOfTipsForInsertion; j++)
+//           sum += tr->bInf[i].epa->executeThem[j];
+//
+//   printBothOpen("\executeThem total = %d, per QS = %d\n", sum, sum / tr->numberOfTipsForInsertion);
+
+}
+
+static void consolidateInfoSeq(tree *tr)
+{
+
+ int i, j;
 
   for(j = 0; j < tr->numberOfTipsForInsertion; j++)
     {
@@ -1583,9 +1717,14 @@ static void consolidateInfo(tree *tr)
     }
 }
 
-
-
-
+static void consolidateInfo(tree *tr)
+{
+#ifdef _USE_PTHREADS
+      masterBarrier(THREAD_EPA_CONSOLIDATE, tr);
+#else
+      consolidateInfoSeq(tr);
+#endif
+}
 
 
 #ifdef _PAVLOS
@@ -1777,7 +1916,9 @@ void classifyML(tree *tr, analdef *adef)
   
   printBothOpen("RAxML will place %d Query Sequences into the %d branches of the reference tree with %d taxa\n\n",  tr->numberOfTipsForInsertion, (2 * tr->ntips - 3), tr->ntips);  
 
-  assert(tr->numberOfTipsForInsertion == (tr->mxtips - tr->ntips));      
+  assert(tr->numberOfTipsForInsertion == (tr->mxtips - tr->ntips));
+
+  printBothOpen("\nAllocating memory, elapsed time: %f\n", gettime() - masterTime);
 
   tr->bInf              = (branchInfo*)rax_malloc(tr->numberOfBranches * sizeof(branchInfo)); 
 
@@ -1785,15 +1926,15 @@ void classifyML(tree *tr, analdef *adef)
     {      
       tr->bInf[i].epa = (epaBranchData*)rax_malloc(sizeof(epaBranchData));
 
-      tr->bInf[i].epa->countThem   = (int*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(int));      
+      tr->bInf[i].epa->countThem   = (unsigned char*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(unsigned char));
       
-      tr->bInf[i].epa->executeThem = (int*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(int));
+      tr->bInf[i].epa->executeThem = (unsigned char*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(unsigned char));
       
       for(j = 0; j < tr->numberOfTipsForInsertion; j++)
-	tr->bInf[i].epa->executeThem[j] = 1;
+          tr->bInf[i].epa->executeThem[j] = 1;
 
       tr->bInf[i].epa->branches          = (double*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(double));   
-      tr->bInf[i].epa->distalBranches    = (double*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(double)); 
+//      tr->bInf[i].epa->distalBranches    = (double*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(double));
          
       tr->bInf[i].epa->likelihoods = (double*)rax_calloc(tr->numberOfTipsForInsertion, sizeof(double));      
       tr->bInf[i].epa->branchNumber = i;
@@ -1814,6 +1955,8 @@ void classifyML(tree *tr, analdef *adef)
   if(tr->perPartitionEPA)
     analyzeReads(tr);
 
+  printBothOpen("\nInitializing worker threads, elapsed time: %f\n", gettime() - masterTime);
+
 #ifdef _USE_PTHREADS 
   tr->contiguousVectorLength = getContiguousVectorLength(tr);
   tr->contiguousScalingLength = getContiguousScalingLength(tr);
@@ -1821,14 +1964,18 @@ void classifyML(tree *tr, analdef *adef)
   masterBarrier(THREAD_INIT_EPA, tr); 
 #endif 
   
+  printBothOpen("\nSetup branch info, elapsed time: %f\n", gettime() - masterTime);
+
   setupBranchInfo(tr, q);   
   
+
   if(tr->useEpaHeuristics)
     {	 
-      int 
-	heuristicInsertions =  MAX(5, (int)(0.5 + (double)(tr->numberOfBranches) * tr->fastEPAthreshold));	  	    	         	 	             
+      tr->slowEPAbranches =  MAX(5, (int)(0.5 + (double)(tr->numberOfBranches) * tr->fastEPAthreshold));
 	        
-      printBothOpen("EPA heuristics: determining %d out of %d most promising insertion branches\n", heuristicInsertions, tr->numberOfBranches);	      
+      printBothOpen("EPA heuristics: determining %d out of %d most promising insertion branches\n", tr->slowEPAbranches, tr->numberOfBranches);
+
+      printBothOpen("\nEPA heuristics CALC start, elapsed time: %f\n", gettime() - masterTime);
 
 #ifdef _USE_PTHREADS	 
       NumberOfJobs = tr->numberOfBranches;
@@ -1837,18 +1984,27 @@ void classifyML(tree *tr, analdef *adef)
       addTraverseRob(tr, r, q, FALSE);
 #endif
       
-      consolidateInfoMLHeuristics(tr, heuristicInsertions);
-    }           
-           
+      printBothOpen("\nEPA heuristics CONSOLIDATE start, elapsed time: %f\n", gettime() - masterTime);
+
+      consolidateInfoMLHeuristics(tr, tr->slowEPAbranches);
+    }
+  else
+      tr->slowEPAbranches = tr->numberOfBranches;
+
+  printBothOpen("\nThorough branch insertions, elapsed time: %f\n", gettime() - masterTime);
+
 #ifdef _USE_PTHREADS
   NumberOfJobs = tr->numberOfBranches;
   masterBarrier(THREAD_INSERT_CLASSIFY_THOROUGH, tr);	      
 #else     
   addTraverseRob(tr, r, q, TRUE);
 #endif
+
+  printBothOpen("\nConsolidating info, elapsed time: %f\n", gettime() - masterTime);
+
   consolidateInfo(tr);                
       
-  printBothOpen("Overall Classification time: %f\n\n", gettime() - masterTime);			               	
+  printBothOpen("\nOverall Classification time: %f\n\n", gettime() - masterTime);
 
 
 #ifdef _PAVLOS
@@ -1924,11 +2080,11 @@ void classifyML(tree *tr, analdef *adef)
 	  {
 	    inf[j].lh            = tr->bInf[j].epa->likelihoods[i];
 	    inf[j].pendantBranch = tr->bInf[j].epa->branches[i];
-	    inf[j].distalBranch  = tr->bInf[j].epa->distalBranches[i];
+	    inf[j].distalBranch  = 0.; //tr->bInf[j].epa->distalBranches[i];
 	    inf[j].number        = tr->bInf[j].epa->jointLabel;
 	  }
 
-	qsort(inf, tr->numberOfBranches, sizeof(info), infoCompare);	 
+	qsort(inf, tr->numberOfBranches, sizeof(info), epaInfoCompare);
 
 	for(j =  0; j < tr->numberOfBranches; j++) 
 	  if(inf[j].lh <= unlikely)
@@ -1936,18 +2092,13 @@ void classifyML(tree *tr, analdef *adef)
 	  else	     
 	    validEntries++;	     	      
 
+//    printBothOpen("\nBranches : %d,   validEntries: %d\n", tr->numberOfBranches, validEntries);
+
 	assert(validEntries > 0);
 
 	j = 0;
-
+	  
 	lmax = inf[0].lh;
-
-    double
-      all = 0.0;
-
-    int k;
-	for(k =  0; k < validEntries; k++)
-      all += exp(inf[k].lh - lmax);
 
 	fprintf(treeFile, "\t{\"p\":[");
 
@@ -1962,6 +2113,13 @@ void classifyML(tree *tr, analdef *adef)
 	   while(acc <= 0.95)
 	*/
 
+    double
+      all = 0.0;
+
+    int k;
+    for(k =  0; k < validEntries; k++)
+      all += EXP(inf[k].lh - lmax);
+
 	/*#define _ALL_ENTRIES*/
 	  
 #ifdef _ALL_ENTRIES
@@ -1971,11 +2129,10 @@ void classifyML(tree *tr, analdef *adef)
 	while(j < validEntries && j < 7)	  
 #endif
 	  { 
-
 	    double 
 	      prob = 0.0;
 
-	    acc += (prob = (exp(inf[j].lh - lmax) / all));
+	    acc += (prob = (EXP(inf[j].lh - lmax) / all));
 	      
 	    if(j == 0)
 	      maxprob = prob;
@@ -2109,10 +2266,10 @@ void classifyML(tree *tr, analdef *adef)
 	    inf[j].number = j;
 	  }
 	
-	qsort(inf, tr->numberOfBranches, sizeof(info), infoCompare);	 
+	qsort(inf, tr->numberOfBranches, sizeof(info), epaInfoCompare);
 	
 	for(j =  0; j < tr->numberOfBranches; j++) 
-	  if(inf[j].lh <= unlikely)
+	  if(inf[j].lh <= 1.1*unlikely)	     
 	    break;
 	  else	     
 	    validEntries++;	     	      
@@ -2122,20 +2279,18 @@ void classifyML(tree *tr, analdef *adef)
 	j = 0;
 	
 	lmax = inf[0].lh;
-	
-    double
-      all = 0.0;
 
-    int k;
+        double all = 0.;
+	int k;
 	for(k =  0; k < validEntries; k++)
-      all += exp(inf[k].lh - lmax);
-
+	    all += EXP(inf[k].lh - lmax);
+	
 	while(acc <= 0.95 && j < validEntries)	  
 	  { 
 	    double 
 	      prob = 0.0;
 	    
-	    acc += (prob = (exp(inf[j].lh - lmax) / all));
+	    acc += (prob = (EXP(inf[j].lh - lmax) / all));
 	    
 	    fprintf(likelihoodWeightsFile, "%s I%d %f %f\n", tr->nameList[tr->inserts[i]], inf[j].number, prob, acc);
 	   	    
@@ -2146,10 +2301,11 @@ void classifyML(tree *tr, analdef *adef)
 	
 	while(j < validEntries)
 	  { 
+	    
 	    double 
 	      prob = 0.0;
-
-	    prob = exp(inf[j].lh - lmax) / all;	      	    
+	    
+	    prob = EXP(inf[j].lh - lmax) / all;
 	    
 	    if(prob > 0)
 	      entropy -= ( prob * log(prob) ); /*pp 20110531 */	      			     

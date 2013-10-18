@@ -2621,30 +2621,32 @@ static void checkSequences(tree *tr, rawdata *rdta, analdef *adef)
 	}
     }
 
+  if (adef->checkForDuplicateSequences)
+  {
+      for(i = 1; i < n; i++)
+        {
+          if(omissionList[i] == 0)
+        {
+          tipI = &(rdta->y[i][1]);
 
-  for(i = 1; i < n; i++)
-    {
-      if(omissionList[i] == 0)
-	{
-	  tipI = &(rdta->y[i][1]);
+          for(j = i + 1; j < n; j++)
+            {
+              if(omissionList[j] == 0)
+            {
+              tipJ = &(rdta->y[j][1]);
+              if(sequenceSimilarity(tipI, tipJ, rdta->sites))
+                {
+                  if(processID == 0)
+                printBothOpen("\n\nIMPORTANT WARNING: Sequences %s and %s are exactly identical\n", tr->nameList[i], tr->nameList[j]);
 
-	  for(j = i + 1; j < n; j++)
-	    {
-	      if(omissionList[j] == 0)
-		{
-		  tipJ = &(rdta->y[j][1]);
-		  if(sequenceSimilarity(tipI, tipJ, rdta->sites))
-		    {
-		      if(processID == 0)
-			printBothOpen("\n\nIMPORTANT WARNING: Sequences %s and %s are exactly identical\n", tr->nameList[i], tr->nameList[j]);
-
-		      omissionList[j] = 1;
-		      count++;
-		    }
-		}
-	    }
-	}
-    }
+                  omissionList[j] = 1;
+                  count++;
+                }
+            }
+            }
+        }
+        }
+  }
 
   if(count > 0 || countUndeterminedColumns > 0)
     {
@@ -3270,6 +3272,7 @@ static void initAdef(analdef *adef)
   adef->leaveDropMode          = FALSE;
   adef->slidingWindowSize      = 100;
   adef->checkForUndeterminedSequences = TRUE;
+  adef->checkForDuplicateSequences = TRUE;
   adef->useQuartetGrouping = FALSE;
   adef->alignmentFileType = PHYLIP;
   adef->calculateIC = FALSE;
@@ -4373,6 +4376,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
   tr->noRateHet = FALSE;
   tr->perPartitionEPA = FALSE;
   tr->useBrLenScaler = FALSE;
+  tr->fastEvaluation = FALSE;
   /********* tr inits end*************/
 
 
@@ -4798,6 +4802,8 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	    break;
 	  case 'c':
 	    adef->mode = CHECK_ALIGNMENT;
+	    // temp workaround for EPA, should use -f U in the future
+	    adef->checkForDuplicateSequences = FALSE;
 	    break;
 	  case 'C':
 	    adef->mode = ANCESTRAL_SEQUENCE_TEST;
@@ -4907,8 +4913,13 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 	    tr->useFastScaling = FALSE;
 	    adef->compressPatterns  = FALSE;	    
 	    break;	  
-	  case 'v':	    
-	    adef->mode = CLASSIFY_ML;	   
+      case 'U':
+        adef->mode = CHECK_ALIGNMENT;
+        adef->checkForDuplicateSequences = FALSE;
+        break;
+	  case 'v':
+	    adef->mode = CLASSIFY_ML;
+	    adef->checkForDuplicateSequences = FALSE;
 
 	    tr->perPartitionEPA = FALSE;
 #ifdef _PAVLOS
@@ -4921,7 +4932,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 
 	  case 'V':
 	    adef->mode = CLASSIFY_ML;	   
-	   	   
+        adef->checkForDuplicateSequences = FALSE;
 	    
 	    tr->perPartitionEPA = TRUE;
 #ifdef _PAVLOS
@@ -7608,21 +7619,103 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
      
       localTree->contiguousTips = tr->yVector;	  	
 	 
-      break;         
+      break;
+//    case THREAD_GATHER_LIKELIHOOD:
+//    {
+//        int branchNumber;
+//        for (branchNumber = 0; branchNumber < tr->numberOfBranches; ++branchNumber)
+//        {
+//            double
+//              *leftContigousVector = localTree->bInf[branchNumber].epa->left,
+//              *rightContigousVector = localTree->bInf[branchNumber].epa->right;
+//
+//            int
+//              *leftContigousScalingVector = localTree->bInf[branchNumber].epa->leftScaling,
+//              *rightContigousScalingVector = localTree->bInf[branchNumber].epa->rightScaling,
+//              rightNumber = localTree->bInf[branchNumber].epa->rightNodeNumber,
+//              leftNumber  = localTree->bInf[branchNumber].epa->leftNodeNumber;
+//
+//            const boolean leftInner = !isTip(leftNumber, localTree->mxtips);
+//            const boolean rightInner = !isTip(rightNumber, localTree->mxtips);
+//
+//            assert(leftInner || rightInner);
+//
+//            size_t
+//                globalColumnCount = 0,
+//                globalCount       = 0;
+//
+//            for(model = 0; model < localTree->NumberOfModels; model++)
+//            {
+//                double
+//                    *leftStridedVector  =  (double *)NULL,
+//                    *rightStridedVector =  (double *)NULL;
+//
+//                int
+//                    *leftStridedScalingVector  =  (int *)NULL,
+//                    *rightStridedScalingVector =  (int *)NULL;
+//
+//                if (leftInner)
+//                {
+//                    leftStridedVector        = localTree->partitionData[model].xVector[leftNumber - localTree->mxtips - 1];
+//                    leftStridedScalingVector = localTree->partitionData[model].expVector[leftNumber - localTree->mxtips - 1];
+//                }
+//
+//                if (rightInner)
+//                {
+//                    rightStridedVector        = localTree->partitionData[model].xVector[rightNumber - localTree->mxtips - 1];
+//                    rightStridedScalingVector = localTree->partitionData[model].expVector[rightNumber - localTree->mxtips - 1];
+//                }
+//
+//                size_t
+//                  blockRequirements = (size_t)(tr->discreteRateCategories) * (size_t)(tr->partitionData[model].states);
+//
+//                size_t
+//                    localColumnCount = 0,
+//                    localCount = 0;
+//
+//                for (globalColumnCount = localTree->partitionData[model].lower; globalColumnCount < localTree->partitionData[model].upper; globalColumnCount++)
+//                {
+//                    if (globalColumnCount % (size_t)n == (size_t)tid)
+//                    {
+//                      if (leftInner)
+//                      {
+//                          memcpy(&leftContigousVector[globalCount], &leftStridedVector[localCount], sizeof(double) * blockRequirements);
+//                          leftContigousScalingVector[globalColumnCount] = leftStridedScalingVector[localColumnCount];
+//                      }
+//
+//                      if (rightInner)
+//                      {
+//                          memcpy(&rightContigousVector[globalCount], &rightStridedVector[localCount], sizeof(double) * blockRequirements);
+//                          rightContigousScalingVector[globalColumnCount] = rightStridedScalingVector[localColumnCount];
+//                      }
+//
+//                      localColumnCount++;
+//                      localCount += blockRequirements;
+//                    }
+//
+//                    globalCount += blockRequirements;
+//                }
+//
+//                assert(localColumnCount == localTree->partitionData[model].width);
+//                assert(localCount == (localTree->partitionData[model].width * (int)blockRequirements));
+//            }
+//        }
+//    }
+//      break;
     case THREAD_GATHER_LIKELIHOOD:
-      {	
-	int 
+      {
+	int
 	  branchCounter = tr->branchCounter;
 
 	double
 	  *leftContigousVector = localTree->bInf[branchCounter].epa->left,
 	  *rightContigousVector = localTree->bInf[branchCounter].epa->right;
-      
+
 	int
 	  *leftContigousScalingVector = localTree->bInf[branchCounter].epa->leftScaling,
-	  *rightContigousScalingVector = localTree->bInf[branchCounter].epa->rightScaling,		
+	  *rightContigousScalingVector = localTree->bInf[branchCounter].epa->rightScaling,
 	  rightNumber = localTree->bInf[branchCounter].epa->rightNodeNumber,
-	  leftNumber  = localTree->bInf[branchCounter].epa->leftNodeNumber;	
+	  leftNumber  = localTree->bInf[branchCounter].epa->leftNodeNumber;
 
 	size_t
 	  globalColumnCount = 0,
@@ -7643,55 +7736,55 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 
 	    size_t
 	      localColumnCount = 0,
-	      localCount = 0;	   
+	      localCount = 0;
 
 	    if(!isTip(leftNumber, localTree->mxtips))
 	      {
 		leftStridedVector        = localTree->partitionData[model].xVector[leftNumber - localTree->mxtips - 1];
 		leftStridedScalingVector = localTree->partitionData[model].expVector[leftNumber - localTree->mxtips - 1];
-	      }	   
+	      }
 
 	    if(!isTip(rightNumber, localTree->mxtips))
 	      {
 		rightStridedVector        = localTree->partitionData[model].xVector[rightNumber - localTree->mxtips - 1];
 		rightStridedScalingVector = localTree->partitionData[model].expVector[rightNumber - localTree->mxtips - 1];
-	      }	    
+	      }
 
-	    assert(!(isTip(leftNumber, localTree->mxtips) && isTip(rightNumber, localTree->mxtips)));	   
+	    assert(!(isTip(leftNumber, localTree->mxtips) && isTip(rightNumber, localTree->mxtips)));
 
-	    blockRequirements = (size_t)(tr->discreteRateCategories) * (size_t)(tr->partitionData[model].states);	   
+	    blockRequirements = (size_t)(tr->discreteRateCategories) * (size_t)(tr->partitionData[model].states);
 
 	    for(globalColumnCount = localTree->partitionData[model].lower; globalColumnCount < localTree->partitionData[model].upper; globalColumnCount++)
-	      {	
+	      {
 		if(globalColumnCount % (size_t)n == (size_t)tid)
-		  {		    
+		  {
 		    if(leftStridedVector)
 		      {
 			memcpy(&leftContigousVector[globalCount], &leftStridedVector[localCount], sizeof(double) * blockRequirements);
 			leftContigousScalingVector[globalColumnCount] = leftStridedScalingVector[localColumnCount];
 		      }
-		    
+
 		    if(rightStridedVector)
 		      {
 			memcpy(&rightContigousVector[globalCount], &rightStridedVector[localCount], sizeof(double) * blockRequirements);
 			rightContigousScalingVector[globalColumnCount] = rightStridedScalingVector[localColumnCount];
 		      }
-		   
+
 		    localColumnCount++;
 		    localCount += blockRequirements;
 		  }
 
-	
+
 
 		globalCount += blockRequirements;
-	      }	    
+	      }
 
 	    assert(localColumnCount == localTree->partitionData[model].width);
 	    assert(localCount == (localTree->partitionData[model].width * (int)blockRequirements));
 
 	  }
       }
-      break;                 
+      break;
     case THREAD_INSERT_CLASSIFY:          
     case THREAD_INSERT_CLASSIFY_THOROUGH:       
       { 
@@ -7720,10 +7813,12 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 		switch(currentJob)
 		  {
 		  case THREAD_INSERT_CLASSIFY:
+		    localTree->fastEvaluation = TRUE;
 		    addTraverseRobIterative(localTree, branchNumber);
 		    break;		  
 		  case  THREAD_INSERT_CLASSIFY_THOROUGH:		    
-		    testInsertThoroughIterative(localTree, branchNumber);		   
+              localTree->fastEvaluation = FALSE;
+		      testInsertThoroughIterative(localTree, branchNumber);
 		    break;   		 		 
 		  default:
 		    assert(0);
@@ -7733,6 +7828,66 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
 	    }
       }
       break;      
+    case THREAD_EPA_CONSOLIDATE_HEUR:
+    {
+        info
+          *inf = (info*)rax_malloc(sizeof(info) * tr->numberOfBranches);
+
+        int i, j;
+
+        for(j = 0; j < tr->numberOfTipsForInsertion; j++)
+        {
+           if (j % (size_t)n == (size_t)tid)
+           {
+                for(i = 0; i < tr->numberOfBranches; i++)
+                  {
+                    inf[i].lh = tr->bInf[i].epa->likelihoods[j];
+                    inf[i].number = i;
+                  }
+
+                qsort(inf, tr->numberOfBranches, sizeof(info), epaInfoCompare);
+
+                for(i = tr->slowEPAbranches; i < tr->numberOfBranches; i++)
+                {
+                    tr->bInf[inf[i].number].epa->executeThem[j] = 0;
+                    tr->bInf[inf[i].number].epa->likelihoods[j] = unlikely;
+                }
+           }
+        }
+
+        rax_free(inf);
+    }
+    break;
+    case THREAD_EPA_CONSOLIDATE:
+    {
+        int i, j;
+
+        for(j = 0; j < tr->numberOfTipsForInsertion; j++)
+        {
+            if (j % (size_t)n == (size_t)tid)
+            {
+                double
+                    max = unlikely;
+
+                int
+                    max_index = -1;
+
+                for(i = 0; i < tr->numberOfBranches; i++)
+                {
+                    if(tr->bInf[i].epa->likelihoods[j] > max)
+                    {
+                        max = tr->bInf[i].epa->likelihoods[j];
+                        max_index = i;
+                    }
+                }
+
+                assert(max_index >= 0);
+
+                tr->bInf[max_index].epa->countThem[j]++;
+           }
+        }
+    }
+    break;
     case THREAD_PREPARE_BIPS_FOR_PRINT:
       {       
 	int 
@@ -9160,9 +9315,9 @@ void writeBinaryModel(tree *tr)
 
   /* cdta */   
 
-  myfwrite(tr->cdta->rateCategory, sizeof(int), tr->rdta->sites + 1, f);
-  myfwrite(tr->cdta->patrat, sizeof(double), tr->rdta->sites + 1, f);
-  myfwrite(tr->cdta->patratStored, sizeof(double), tr->rdta->sites + 1, f);
+//  myfwrite(tr->cdta->rateCategory, sizeof(int), tr->rdta->sites + 1, f);
+//  myfwrite(tr->cdta->patrat, sizeof(double), tr->rdta->sites + 1, f);
+//  myfwrite(tr->cdta->patratStored, sizeof(double), tr->rdta->sites + 1, f);
 
   /* partition contributions for fracchange */
 
@@ -9259,9 +9414,9 @@ void readBinaryModel(tree *tr)
 
   /* cdta */   
 
-  myfread(tr->cdta->rateCategory, sizeof(int),    (size_t)(tr->rdta->sites + 1), f);
-  myfread(tr->cdta->patrat,       sizeof(double), (size_t)(tr->rdta->sites + 1), f);
-  myfread(tr->cdta->patratStored, sizeof(double), (size_t)(tr->rdta->sites + 1), f);
+//  myfread(tr->cdta->rateCategory, sizeof(int),    (size_t)(tr->rdta->sites + 1), f);
+//  myfread(tr->cdta->patrat,       sizeof(double), (size_t)(tr->rdta->sites + 1), f);
+//  myfread(tr->cdta->patratStored, sizeof(double), (size_t)(tr->rdta->sites + 1), f);
 
   /* partition contributions for fracchange */
 
@@ -10528,6 +10683,20 @@ static void rootTree(tree *tr, analdef *adef)
   rax_free(distances);
 }
 
+//double inline flog2(double x)
+//{
+//    int n;
+//    const double sig = frexp (x , &n);
+//    double t = (sig - 1) / (sig + 1);
+//    const double t2 = t*t;
+//    double lsig = t;
+//    t *= t2;
+//    lsig += t / 3.;
+//    t *= t2;
+//    lsig += t / 5.;
+//    return LOG2Ex2 * lsig + n;
+//}
+
 int main (int argc, char *argv[])
 {
   rawdata      *rdta;
@@ -10538,6 +10707,12 @@ int main (int argc, char *argv[])
     i,
     countGTR = 0,
     countOtherModel = 0;
+
+//  double x;
+//  for (x = 0.0; x < 0.2; x += 0.001)
+//      printf("%.3f \t %.7f \t %.7f, \t %.10f\n", x, flog2(x), log2(x), fabs(flog2(x) - log2(x)));
+//
+//  exit(0);
 
 #if (defined(_USE_PTHREADS) && !defined(_PORTABLE_PTHREADS))  
   pinToCore(0);
@@ -10583,7 +10758,6 @@ int main (int argc, char *argv[])
 
   initAdef(adef);
   get_args(argc,argv, adef, tr); 
-  
 
   if(adef->readTaxaOnly)  
     {

@@ -4071,3 +4071,97 @@ void newviewGTRGAMMAPROT_AVX_GAPPED_SAVE(int tipCase,
   if(useFastScaling)
     *scalerIncrement = addScale;
 }
+
+
+/*
+ *   EVALUATE
+ */
+
+double evaluateGTRGAMMA_fast_AVX(int *ex1, int *ex2, int *wptr,
+                   double *x1_start, double *x2_start,
+                   double *tipVector,
+                   unsigned char *tipX1, const int n, double *diagptable, const boolean fastScaling)
+{
+  double   sum = 0.0, term;
+  int     i, j;
+  double  *x1, *x2;
+
+  __m256d diag[4];
+  for (j = 0; j < 4; ++j)
+  {
+    diag[j] = _mm256_load_pd(&diagptable[j * 4]);
+  }
+
+  static const double minLLH = log2(minlikelihood);
+  static const double gammaLLH = log2(0.25);
+
+  if(tipX1)
+  {
+      double diff = 0, sum2 = 0.;
+      for (i = 0; i < n; i++)
+      {
+          double t[4] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+          __m256d termv, x1v, x2v;
+
+          x1 = &(tipVector[4 * tipX1[i]]);
+          x2 = &x2_start[16 * i];
+
+          termv = _mm256_set1_pd(0.0);
+
+          for(j = 0; j < 4; j++)
+          {
+              x1v = _mm256_load_pd(&x1[0]);
+              x2v = _mm256_load_pd(&x2[j * 4]);
+
+              x1v = _mm256_mul_pd(x1v, x2v);
+              x1v = _mm256_mul_pd(x1v, diag[j]);
+
+              termv = _mm256_add_pd(termv, x1v);
+          }
+
+          _mm256_store_pd(t, termv);
+
+          if(fastScaling)
+            term = gammaLLH + log2_fast(fabs(t[0] + t[1] + t[3] + t[4]));
+          else
+            term = gammaLLH + log2_fast(fabs(t[0] + t[1] + t[3] + t[4])) + (ex2[i] * minLLH /* LOG(minlikelihood) */);
+
+          sum += wptr[i] * term;
+    }
+  }
+  else
+  {
+      for (i = 0; i < n; i++)
+      {
+          double t[4] __attribute__ ((aligned (BYTE_ALIGNMENT)));
+          __m256d termv, x1v, x2v;
+
+          x1 = &x1_start[16 * i];
+          x2 = &x2_start[16 * i];
+
+          termv = _mm256_set1_pd(0.0);
+
+          for(j = 0; j < 4; j++)
+            {
+              x1v = _mm256_load_pd(&x1[j * 4]);
+              x2v = _mm256_load_pd(&x2[j * 4]);
+
+              x1v = _mm256_mul_pd(x1v, x2v);
+              x1v = _mm256_mul_pd(x1v, diag[j]);
+
+              termv = _mm256_add_pd(termv, x1v);
+            }
+
+          _mm256_store_pd(t, termv);
+
+          if(fastScaling)
+            term = gammaLLH + log2_fast(fabs(t[0] + t[1] + t[3] + t[4]));
+          else
+            term = gammaLLH + log2_fast(fabs(t[0] + t[1] + t[3] + t[4])) + ((ex1[i] + ex2[i]) * minLLH /*LOG(minlikelihood)*/);
+
+          sum += wptr[i] * term;
+      }
+  }
+
+  return sum;
+}

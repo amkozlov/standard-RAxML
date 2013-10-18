@@ -1,0 +1,5 @@
+*.o
+.cproject
+.project
+raxmlHPC-PTHREADS-AVX
+raxmlHPC-PTHREADS-SSE3
