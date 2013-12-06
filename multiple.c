@@ -1799,6 +1799,10 @@ void doInference(tree *tr, analdef *adef, rawdata *rdta, cruncheddata *cdta)
 	printTreePerGene(tr, adef, bestTreeFileName, "w");
     }
   
+  // Alexey: workaround for numerical problems with optMod:
+  // Write model parameter file after each tree inference to avoid extra TREE_EVALUATION call
+  writeBinaryModel(tr);
+
   overallTime = gettime() - masterTime;
 
   printBothOpen("Program execution info written to %s\n", infoFileName);
