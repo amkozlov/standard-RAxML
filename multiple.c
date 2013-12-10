@@ -1596,7 +1596,7 @@ void doInference(tree *tr, analdef *adef, rawdata *rdta, cruncheddata *cdta)
 	    modOpt(tr, adef, FALSE, adef->likelihoodEpsilon); 
 	  else
 	    {
-	      readBinaryModel(tr);
+	      readBinaryModel(tr, adef);
 	      evaluateGenericInitrav(tr, tr->start);
 	      treeEvaluate(tr, 2);
 	    }
@@ -1801,7 +1801,7 @@ void doInference(tree *tr, analdef *adef, rawdata *rdta, cruncheddata *cdta)
   
   // Alexey: workaround for numerical problems with optMod:
   // Write model parameter file after each tree inference to avoid extra TREE_EVALUATION call
-  writeBinaryModel(tr);
+  writeBinaryModel(tr, adef);
 
   overallTime = gettime() - masterTime;
 

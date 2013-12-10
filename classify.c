@@ -1169,87 +1169,106 @@ void testInsertThoroughIterative(tree *tr, int branchNumber)
 	  root = r1;
 	}
     }
+
+  // newview
+
+  boolean executeBranch = FALSE;
+  for(insertions = 0; insertions < tr->numberOfTipsForInsertion; insertions++)
+    {
+      if(b->epa->executeThem[insertions])
+      {
+          executeBranch = TRUE;
+          break;
+      }
+    }
+
+  if (!executeBranch)
+      return;
+
+  double
+    *x1 = (double*)NULL,
+    *x2 = (double*)NULL;
+
+  int
+    *ex1 = (int*)NULL,
+    *ex2 = (int*)NULL;
+
+  unsigned char
+    *tipX1 = (unsigned char *)NULL,
+    *tipX2 = (unsigned char *)NULL;
+
+
+//  if(isTip(leftNodeNumber, tr->mxtips) && isTip(rightNodeNumber, tr->mxtips))
+//    {
+//      tipCase = TIP_TIP;
+//
+//      tipX1 = tr->contiguousTips[leftNodeNumber];
+//      tipX2 = tr->contiguousTips[rightNodeNumber];
+//
+//      newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e1, e2, insertions);
+//    }
+//  else
+//    {
+//      if (isTip(leftNodeNumber, tr->mxtips))
+//    {
+//      tipCase = TIP_INNER;
+//
+//      tipX1 = tr->contiguousTips[leftNodeNumber];
+//
+//      x2  = b->epa->right;
+//      ex2 = b->epa->rightScaling;
+//      newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e1, e2, insertions);
+//    }
+//      else
+//    {
+//      if(isTip(rightNodeNumber, tr->mxtips))
+//        {
+//          tipCase = TIP_INNER;
+//
+//          tipX1 = tr->contiguousTips[rightNodeNumber];
+//
+//          x2  = b->epa->left;
+//          ex2 = b->epa->leftScaling;
+//          newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e2, e1, insertions);
+//        }
+//      else
+//        {
+//          tipCase = INNER_INNER;
+//
+//          x1  = b->epa->left;
+//          ex1 = b->epa->leftScaling;
+//
+//          x2  = b->epa->right;
+//          ex2 = b->epa->rightScaling;
+//          newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e1, e2, insertions);
+//        }
+//    }
+//    }
+
+  // newview end
 	     	  
   for(insertions = 0; insertions < tr->numberOfTipsForInsertion; insertions++)
     { 
       if(b->epa->executeThem[insertions])
 	{
-	  double 	    
-	    *x1 = (double*)NULL,
-	    *x2 = (double*)NULL;
-	    
-	  int	   
-	    *ex1 = (int*)NULL,
-	    *ex2 = (int*)NULL; 
-	  
-	  unsigned char 
-	    *tipX1 = (unsigned char *)NULL,
-	    *tipX2 = (unsigned char *)NULL;	     	    	  	  	    	  	  
 	  
 	   double 
 	    ratio,
 	    modifiedBranchLength,
 	    distalLength;
 
-	  for(model = 0; model < tr->numBranches; model++)
-	    {
-	      z = sqrt(b->epa->branchLengths[model]);
-	      if(z < zmin) 
-		z = zmin;
-	      if(z > zmax)
-		z = zmax;
+	   for(model = 0; model < tr->numBranches; model++)
+	     {
+	       z = sqrt(b->epa->branchLengths[model]);
+	       if(z < zmin)
+	     z = zmin;
+	       if(z > zmax)
+	     z = zmax;
 
-	      e1[model] = z;
-	      e2[model] = z;
-	      e3[model] = defaultz;
-	    }
-	      	  	  	    
-	  if(isTip(leftNodeNumber, tr->mxtips) && isTip(rightNodeNumber, tr->mxtips))
-	    {
-	      tipCase = TIP_TIP;
-	      
-	      tipX1 = tr->contiguousTips[leftNodeNumber];
-	      tipX2 = tr->contiguousTips[rightNodeNumber];
-	      
-	      newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e1, e2, insertions);	
-	    }
-	  else
-	    {
-	      if (isTip(leftNodeNumber, tr->mxtips))
-		{
-		  tipCase = TIP_INNER;
-		  
-		  tipX1 = tr->contiguousTips[leftNodeNumber];
-		  
-		  x2  = b->epa->right;	     
-		  ex2 = b->epa->rightScaling; 
-		  newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e1, e2, insertions);	
-		}
-	      else 
-		{
-		  if(isTip(rightNodeNumber, tr->mxtips))
-		    {
-		      tipCase = TIP_INNER;
-		      
-		      tipX1 = tr->contiguousTips[rightNodeNumber];
-		      
-		      x2  = b->epa->left;	 
-		      ex2 = b->epa->leftScaling;
-		      newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e2, e1, insertions);	
-		    }       
-		  else
-		    {
-		      tipCase = INNER_INNER;
-		      
-		      x1  = b->epa->left;
-		      ex1 = b->epa->leftScaling;
-		      
-		      x2  = b->epa->right;
-		      ex2 = b->epa->rightScaling;
-		      newviewMultiGrain(tr, x1, x2, x3, ex1, ex2, ex3, tipX1, tipX2, tipCase, e1, e2, insertions);	
-		    }
-		}	      
-	    }
+	       e1[model] = z;
+	       e2[model] = z;
+	       e3[model] = defaultz;
+	     }
 	  
 	  result = localSmoothClassify(tr, smoothings, leftNodeNumber, rightNodeNumber, tr->inserts[insertions], e1, e2, e3, b, insertions);
 	      	    
@@ -1499,17 +1518,19 @@ static void setupBranchInfo(tree *tr, nodeptr q)
 
   tr->branchCounter = 0;
 
-//  setupBranchNodes(tr, q, tr->bInf);
+  setupBranchNodes(tr, q, tr->bInf);
 
-//   #ifdef _USE_PTHREADS
-//      allocBranchX(tr);
-//    #endif
+  printBothOpen("\nThread init likelihood, elapsed time: %f\n", gettime() - masterTime);
 
-//  tr->branchCounter = 0;
+  #ifdef _USE_PTHREADS
+      masterBarrier(THREAD_INIT_LIKELIHOOD, tr);
+    #endif
 
-  setupBranchMetaInfo(tr, q, tr->ntips, tr->bInf);
+  tr->branchCounter = 0;
 
   printBothOpen("\nThread gather likelihood, elapsed time: %f\n", gettime() - masterTime);
+
+  setupBranchMetaInfo(tr, q, tr->ntips, tr->bInf);
 
   printBothOpen("\nsetupJointFormat, elapsed time: %f\n", gettime() - masterTime);
 

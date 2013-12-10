@@ -1320,8 +1320,8 @@ extern void shSupports(tree *tr, analdef *adef, rawdata *rdta, cruncheddata *cdt
 
 extern FILE *getNumberOfTrees(tree *tr, char *fileName, analdef *adef);
 
-extern void writeBinaryModel(tree *tr);
-extern void readBinaryModel(tree *tr);
+extern void writeBinaryModel(tree *tr, analdef *adef);
+extern void readBinaryModel(tree *tr, analdef *adef);
 extern void treeEvaluateRandom (tree *tr, double smoothFactor);
 extern void treeEvaluateProgressive(tree *tr);
 
@@ -1427,6 +1427,7 @@ extern int epaInfoCompare(const void *p1, const void *p2);
 #define THREAD_OPT_LG4X_RATES               45
 #define THREAD_EPA_CONSOLIDATE_HEUR         46
 #define THREAD_EPA_CONSOLIDATE              47
+#define THREAD_INIT_LIKELIHOOD              48
 
 
 /*

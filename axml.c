@@ -3957,7 +3957,7 @@ static void printREADME(void)
   printf("      [-c numberOfCategories] [-C] [-d] [-D]\n");
   printf("      [-e likelihoodEpsilon] [-E excludeFileName]\n");
   printf("      [-f a|A|b|B|c|C|d|e|E|F|g|G|h|H|i|I|j|J|m|n|N|o|p|q|r|R|s|S|t|T|u|v|V|w|W|x|y] [-F]\n");
-  printf("      [-g groupingFileName] [-G placementThreshold] [-h]\n");
+  printf("      [-g groupingFileName] [-G placementThreshold] [-h] [-H]\n");
   printf("      [-i initialRearrangementSetting] [-I autoFC|autoMR|autoMRE|autoMRE_IGN]\n");
   printf("      [-j] [-J MR|MR_DROP|MRE|STRICT|STRICT_DROP|T_<PERCENT>] [-k] [-K] \n");
   printf("      [-L MR|MRE|T_<PERCENT>] [-M]\n");
@@ -4042,6 +4042,10 @@ static void printREADME(void)
   printf("              using slow insertions under ML).\n");
   printf("\n");
   printf("      -h      Display this help message.\n");
+  printf("\n");
+  printf("      -H      Disable pattern compression.\n");
+  printf("\n");
+  printf("              DEFAULT: ON\n");
   printf("\n");
   printf("      -i      Initial rearrangement setting for the subsequent application of topological \n");
   printf("              changes phase\n");
@@ -4311,6 +4315,7 @@ static void analyzeRunId(char id[128])
 static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 {
   boolean
+    disablePatternCompression = FALSE,
     bad_opt    =FALSE,
     resultDirSet = FALSE;
 
@@ -4381,7 +4386,7 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
 
 
   while(!bad_opt &&
-	((c = mygetopt(argc,argv,"R:T:E:N:B:L:P:S:Y:A:G:H:I:J:K:W:l:x:z:g:r:e:a:b:c:f:i:m:t:w:s:n:o:q:#:p:vudyjhkMDFQUOVCX", &optind, &optarg))!=-1))
+	((c = mygetopt(argc,argv,"R:T:E:N:B:L:P:S:Y:A:G:I:J:K:W:l:x:z:g:r:e:a:b:c:f:i:m:t:w:s:n:o:q:#:p:vudyjhHkMDFQUOVCX", &optind, &optarg))!=-1))
     {
     switch(c)
       {
@@ -4750,6 +4755,9 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
       case 'h':
 	printREADME();
 	errorExit(0);
+      case 'H':
+    disablePatternCompression = TRUE;
+    break;
       case 'j':
 	adef->checkpoints = 1;
 	break;
@@ -5035,7 +5043,8 @@ static void get_args(int argc, char *argv[], analdef *adef, tree *tr)
     }
   }
 
-  
+  if(disablePatternCompression)
+      adef->compressPatterns = FALSE;
 
 #ifdef _USE_PTHREADS
   if(NumberOfThreads < 2)
@@ -7620,88 +7629,49 @@ static void execFunction(tree *tr, tree *localTree, int tid, int n)
       localTree->contiguousTips = tr->yVector;	  	
 	 
       break;
-//    case THREAD_GATHER_LIKELIHOOD:
-//    {
-//        int branchNumber;
-//        for (branchNumber = 0; branchNumber < tr->numberOfBranches; ++branchNumber)
-//        {
-//            double
-//              *leftContigousVector = localTree->bInf[branchNumber].epa->left,
-//              *rightContigousVector = localTree->bInf[branchNumber].epa->right;
-//
-//            int
-//              *leftContigousScalingVector = localTree->bInf[branchNumber].epa->leftScaling,
-//              *rightContigousScalingVector = localTree->bInf[branchNumber].epa->rightScaling,
-//              rightNumber = localTree->bInf[branchNumber].epa->rightNodeNumber,
-//              leftNumber  = localTree->bInf[branchNumber].epa->leftNodeNumber;
-//
-//            const boolean leftInner = !isTip(leftNumber, localTree->mxtips);
-//            const boolean rightInner = !isTip(rightNumber, localTree->mxtips);
-//
-//            assert(leftInner || rightInner);
-//
-//            size_t
-//                globalColumnCount = 0,
-//                globalCount       = 0;
-//
-//            for(model = 0; model < localTree->NumberOfModels; model++)
-//            {
-//                double
-//                    *leftStridedVector  =  (double *)NULL,
-//                    *rightStridedVector =  (double *)NULL;
-//
-//                int
-//                    *leftStridedScalingVector  =  (int *)NULL,
-//                    *rightStridedScalingVector =  (int *)NULL;
-//
-//                if (leftInner)
-//                {
-//                    leftStridedVector        = localTree->partitionData[model].xVector[leftNumber - localTree->mxtips - 1];
-//                    leftStridedScalingVector = localTree->partitionData[model].expVector[leftNumber - localTree->mxtips - 1];
-//                }
-//
-//                if (rightInner)
-//                {
-//                    rightStridedVector        = localTree->partitionData[model].xVector[rightNumber - localTree->mxtips - 1];
-//                    rightStridedScalingVector = localTree->partitionData[model].expVector[rightNumber - localTree->mxtips - 1];
-//                }
-//
-//                size_t
-//                  blockRequirements = (size_t)(tr->discreteRateCategories) * (size_t)(tr->partitionData[model].states);
-//
-//                size_t
-//                    localColumnCount = 0,
-//                    localCount = 0;
-//
-//                for (globalColumnCount = localTree->partitionData[model].lower; globalColumnCount < localTree->partitionData[model].upper; globalColumnCount++)
-//                {
-//                    if (globalColumnCount % (size_t)n == (size_t)tid)
-//                    {
-//                      if (leftInner)
-//                      {
-//                          memcpy(&leftContigousVector[globalCount], &leftStridedVector[localCount], sizeof(double) * blockRequirements);
-//                          leftContigousScalingVector[globalColumnCount] = leftStridedScalingVector[localColumnCount];
-//                      }
-//
-//                      if (rightInner)
-//                      {
-//                          memcpy(&rightContigousVector[globalCount], &rightStridedVector[localCount], sizeof(double) * blockRequirements);
-//                          rightContigousScalingVector[globalColumnCount] = rightStridedScalingVector[localColumnCount];
-//                      }
-//
-//                      localColumnCount++;
-//                      localCount += blockRequirements;
-//                    }
-//
-//                    globalCount += blockRequirements;
-//                }
-//
-//                assert(localColumnCount == localTree->partitionData[model].width);
-//                assert(localCount == (localTree->partitionData[model].width * (int)blockRequirements));
-//            }
-//        }
-//    }
-//      break;
+    case THREAD_INIT_LIKELIHOOD:
+    {
+        size_t vectorChunkSize = tr->contiguousVectorLength / n;
+        size_t scalingChunkSize = tr->contiguousScalingLength / n;
+        size_t vectorOffset = vectorChunkSize * tid;
+        size_t scalingOffset = scalingChunkSize * tid;
+
+        if (tid == n-1)
+        {
+            vectorChunkSize = tr->contiguousVectorLength - vectorOffset;
+            scalingChunkSize = tr->contiguousScalingLength - scalingOffset;
+        }
+
+        int branchNumber;
+        for (branchNumber = 0; branchNumber < tr->numberOfBranches; ++branchNumber)
+        {
+            double
+              *leftContigousVector = localTree->bInf[branchNumber].epa->left,
+              *rightContigousVector = localTree->bInf[branchNumber].epa->right;
+
+            int
+              *leftContigousScalingVector = localTree->bInf[branchNumber].epa->leftScaling,
+              *rightContigousScalingVector = localTree->bInf[branchNumber].epa->rightScaling,
+              rightNumber = localTree->bInf[branchNumber].epa->rightNodeNumber,
+              leftNumber  = localTree->bInf[branchNumber].epa->leftNodeNumber;
+
+            const boolean leftInner = !isTip(leftNumber, localTree->mxtips);
+            const boolean rightInner = !isTip(rightNumber, localTree->mxtips);
+
+            if (leftInner)
+            {
+                memset(&leftContigousVector[vectorOffset], 0, sizeof(double) * vectorChunkSize);
+                memset(&leftContigousScalingVector[scalingOffset], 0, sizeof(int) * scalingChunkSize);
+            }
+
+            if (rightInner)
+            {
+                memset(&rightContigousVector[vectorOffset], 0, sizeof(double) * vectorChunkSize);
+                memset(&rightContigousScalingVector[scalingOffset], 0, sizeof(int) * scalingChunkSize);
+            }
+        }
+    }
+      break;
     case THREAD_GATHER_LIKELIHOOD:
       {
 	int
@@ -8297,7 +8267,7 @@ static void pinToCore(int tid)
 
   if(pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset) != 0)
     {
-      printBothOpen("\n\nThere was a problem finding a physical core for thread number %d to run on.\n", tid);
+      printBothOpen("\n\nThere was a problem f inding a physical core for thread number %d to run on.\n", tid);
       printBothOpen("Probably this happend because you are trying to run more threads than you have cores available,\n");
       printBothOpen("which is a thing you should never ever do again, good bye .... \n\n");
       assert(0);
@@ -8322,7 +8292,7 @@ static void *likelihoodThread(void *tData)
 #ifndef _PORTABLE_PTHREADS
   pinToCore(tid);
 #endif
- 
+
   printf("\nThis is RAxML Worker Pthread Number: %d\n", tid);
 
   while(1)
@@ -8540,7 +8510,7 @@ static void computePerSiteLLs(tree *tr, analdef *adef, char *bootStrapFileName)
 	{
 	  if(adef->useBinaryModelFile)
 	    {
-	      readBinaryModel(tr);
+	      readBinaryModel(tr, adef);
 	      evaluateGenericInitrav(tr, tr->start);
 	      treeEvaluate(tr, 2);
 	    }
@@ -8668,7 +8638,7 @@ static void computeAllLHs(tree *tr, analdef *adef, char *bootStrapFileName)
 
 	  if(adef->useBinaryModelFile)
 	    {
-	      readBinaryModel(tr);
+	      readBinaryModel(tr, adef);
 	      evaluateGenericInitrav(tr, tr->start);
 	      treeEvaluate(tr, 2);
 	    }
@@ -9305,19 +9275,26 @@ static void writeLG4(tree *tr, int model, int dataType, FILE *f, partitionLength
 }
 
 
-void writeBinaryModel(tree *tr)
+void writeBinaryModel(tree *tr, analdef *adef)
 {
   int   
     model; 
   
   FILE 
-    *f = myfopen(binaryModelParamsOutputFileName, "w"); 
+    *f = myfopen(binaryModelParamsOutputFileName, "w");
+
+  /* pattern compression */
+
+  myfwrite(&adef->compressPatterns, sizeof(boolean), 1, f);
 
   /* cdta */   
 
-//  myfwrite(tr->cdta->rateCategory, sizeof(int), tr->rdta->sites + 1, f);
-//  myfwrite(tr->cdta->patrat, sizeof(double), tr->rdta->sites + 1, f);
-//  myfwrite(tr->cdta->patratStored, sizeof(double), tr->rdta->sites + 1, f);
+  if (tr->rateHetModel == CAT)
+  {
+    myfwrite(tr->cdta->rateCategory, sizeof(int), tr->rdta->sites + 1, f);
+    myfwrite(tr->cdta->patrat, sizeof(double), tr->rdta->sites + 1, f);
+    myfwrite(tr->cdta->patratStored, sizeof(double), tr->rdta->sites + 1, f);
+  }
 
   /* partition contributions for fracchange */
 
@@ -9399,8 +9376,11 @@ static void readLG4(tree *tr, int model, int dataType, FILE *f, partitionLengths
     }
 }
 
-void readBinaryModel(tree *tr)
+void readBinaryModel(tree *tr, analdef *adef)
 {
+  boolean
+    compressPatterns;
+
   int  
     model;
 
@@ -9410,13 +9390,26 @@ void readBinaryModel(tree *tr)
 
   printBothOpen("\nRAxML is reading a binary model file and not optimizing model params\n");
 
-  f = fopen(binaryModelParamsInputFileName, "r");   
+  f = fopen(binaryModelParamsInputFileName, "r");
+
+  /* pattern compression */
+
+  myfread(&compressPatterns, sizeof(boolean), 1, f);
+
+  if(compressPatterns != adef->compressPatterns)
+  {
+    printf("Error you may need to disable pattern compression via the \"-H\" command line option!\n");
+    errorExit(-1);
+  }
 
   /* cdta */   
 
-//  myfread(tr->cdta->rateCategory, sizeof(int),    (size_t)(tr->rdta->sites + 1), f);
-//  myfread(tr->cdta->patrat,       sizeof(double), (size_t)(tr->rdta->sites + 1), f);
-//  myfread(tr->cdta->patratStored, sizeof(double), (size_t)(tr->rdta->sites + 1), f);
+  if (tr->rateHetModel == CAT)
+  {
+      myfread(tr->cdta->rateCategory, sizeof(int),    (size_t)(tr->rdta->sites + 1), f);
+      myfread(tr->cdta->patrat,       sizeof(double), (size_t)(tr->rdta->sites + 1), f);
+      myfread(tr->cdta->patratStored, sizeof(double), (size_t)(tr->rdta->sites + 1), f);
+  }
 
   /* partition contributions for fracchange */
 
@@ -9946,7 +9939,7 @@ static void computeQuartets(tree *tr, analdef *adef, rawdata *rdta, cruncheddata
     }
   else
     {
-      readBinaryModel(tr);
+      readBinaryModel(tr, adef);
 
       printBothOpen("Time for reading model parameters: %f\n\n", gettime() - masterTime); 
     }
@@ -10950,12 +10943,9 @@ int main (int argc, char *argv[])
       break;
     case CLASSIFY_ML:
       if(adef->useBinaryModelFile)
-	{	 
-	  assert(tr->rateHetModel != CAT);
-	  readBinaryModel(tr);	
-	}
+          readBinaryModel(tr, adef);
       else
-	initModel(tr, rdta, cdta, adef);
+          initModel(tr, rdta, cdta, adef);
       
       getStartingTree(tr, adef);
       exit(0);
@@ -11017,14 +11007,14 @@ int main (int argc, char *argv[])
 	{ 
 	  if(adef->useBinaryModelFile)	 	 
 	    {
-	      readBinaryModel(tr);
+	      readBinaryModel(tr, adef);
 	      evaluateGenericInitrav(tr, tr->start);	      
 	      treeEvaluate(tr, 2);
 	    }
 	  else
 	    {	      
-	      modOpt(tr, adef, TRUE, adef->likelihoodEpsilon);	  
-	      writeBinaryModel(tr);
+	      modOpt(tr, adef, TRUE, adef->likelihoodEpsilon);
+	      writeBinaryModel(tr, adef);
 	    }
 	  
 	  printLog(tr, adef, TRUE);
@@ -11066,7 +11056,7 @@ int main (int argc, char *argv[])
 	      doAllInOne(tr, adef);
 	    }
 	  else	    	    
-	    doInference(tr, adef, rdta, cdta);	     	
+	    doInference(tr, adef, rdta, cdta);
 	}
       break;
     case MORPH_CALIBRATOR:
